@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="redditApp">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js'></script>
+    <link rel="stylesheet" href="https://bootswatch.com/cyborg/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.4.0/animate.min.css">
+    <link href='https://fonts.googleapis.com/css?family=Stoke' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+          , rel='stylesheet' , type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Merriweather:400,300,300italic,400italic,700,700italic,900,900italic'
+          , rel='stylesheet' , type='text/css'>
+    <title>Reddit Clone</title>
+
+
+</head>
+<body>
+<style>
+    .green {
+        color:green;
+    }
+    .red {
+        color:red;
+    }
+</style>
+<div ng-controller="RedditController">
+    <nav class="navbar navbar-default navbar-static-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                        data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">Reddit Clone</a>
+            </div>
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <div class="navbar-form navbar-left">
+                    <button ng-click="submitPost()" type="submit" class="btn btn-default"><span
+                            class="glyphicon glyphicon-plus"></span>New Post
+                    </button>
+                </div>
+                <form class="navbar-form navbar-left" role="search">
+                    <div class="form-group">
+                        <input ng-model='search' type="text" class="form-control" placeholder="Search">
+                    </div>
+                </form>
+                <ul class="nav navbar-nav">
+                    <select ng-model="sortBy">
+                        <option value="-votes">Votes</option>
+                        <option value="-time">Time</option>
+                    </select>
+                    <!--
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                           aria-expanded="false">Sort By {{selectedItem}}<span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li value="votes" ng-click="sort = '-votes'"><a ng-click="select('Votes')">Votes</a></li>
+                            <li ng-click="sort = 'time'"><a ng-click="select('Date')">Date</a></li>
+                        </ul>
+                    </li> -->
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <div ng-show='showForm' class="row margin-bottom showPostForm" ng-if="showForm">
+            <div class="col-md-6 col-md-offset-3">
+                <form name="postForm" novalidate>
+                    <h3 class="text-center text-info">Add a Post</h3>
+                    <label for="title" class="margin-top">Title</label>
+                    <input ng-class='{invalid: postForm.title.$error.required}' name="title" ng-model="title"
+                           type="text" class="form-control" id="title" placeholder="title..." required>
+
+                    <p class="text-danger" ng-show="postForm.title.$error.required">Required</p>
+                    <label for="author" class="margin-top">Author</label>
+                    <input ng-class='{invalid: postForm.author.$error.required}' name="author" ng-model="author"
+                           type="text" class="form-control" id="author" placeholder="author..." required>
+
+                    <p class="text-danger" ng-show="postForm.author.$error.required">Required</p>
+                    <label for="image" class="margin-top">Image URL</label>
+                    <input ng-class='{invalid: postForm.image.$error.required}' name="image" ng-model="image"
+                           type="text" class="form-control" id="image" placeholder="image url..." required>
+
+                    <p class="text-danger" ng-show="postForm.image.$error.required">Required</p>
+                    <label for="description" class="margin-top">Description</label>
+                    <input ng-class='{invalid: postForm.description.$error.required}' name="description"
+                           ng-model="description" type="text" class="form-control" id="description"
+                           placeholder="description..." required>
+
+                    <p class="text-danger" ng-show="postForm.description.$error.required">Required</p>
+                    <button ng-disabled="postForm.$invalid" ng-click="addPost(postForm.$valid)"
+                            class="btn btn-primary margin-top">Create Post
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="row margin-top post" ng-repeat='post in posts | orderBy: sortBy | filter: search'>
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="thumbnail">
+                            <img ng-src="{{post.image}}" alt="...">
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <h4><strong class="text-info">{{post.title}}</strong> | <i ng-click="post.votes = post.votes+1"
+                                                                                   class='glyphicon glyphicon-thumbs-up btn'></i>
+                            <i ng-click="post.votes = post.votes-1" class='glyphicon glyphicon-thumbs-down btn'></i>
+                            <span class='votes'
+                                  ng-class='post.votes >=0 ? "green" : "red"'>{{post.votes}}<span></h4>
+
+                        <p class='pull-right text-warning'>By {{post.author}}</p>
+
+                        <p>{{post.description}}</p>
+
+                        <p><i class="glyphicon glyphicon-calendar"></i> {{post.time | amCalendar}} | <i
+                                ng-click='thisComment = !thisComment' class="glyphicon glyphicon-comment btn"></i>
+                            {{post.comments.length}}
+                            <ng-pluralize count="post.comments.length"
+                                          when="{'0': 'comments',
+                          '1': 'comment',
+                          'other': 'comments'}"></ng-pluralize>
+                            | <i ng-click='commentForm = !commentForm' class="glyphicon glyphicon-pencil btn"></i> Add
+                            Comment
+                        </p>
+                        <p ng-show="thisComment" ng-model="thisComment" ng-if="thisComment" class="animate-if"
+                           ng-repeat='comment in post.comments'><strong>{{comment.author}}</strong> said <span
+                                class='text-info'>"{{comment.content}}"</span></p>
+
+                        <form name="addComment" ng-show="commentForm" ng-if="commentForm" class="showCommentForm"
+                              novalidate>
+                            <label> Name: <input ng-class='{commentInvalid: addComment.name.$invalid}'
+                                                 ng-model="commentAuthor" class="form-control" type="text" name="name"
+                                                 required> </label>
+                            <label> Comment: <input ng-class='{commentInvalid: addComment.comment.$invalid}'
+                                                    ng-model="commentBody" class="form-control" type="text"
+                                                    name="comment" required> </label>
+                            <button ng-disabled="addComment.$invalid" ng-click="submitComment()"
+                                    class="btn btn-warning">Submit
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.0-beta.1/angular-animate.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment.min.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/angular-moment/0.9.0/angular-moment.min.js"></script>
+<script type="text/javascript" src="app.js"></script>
+</body>
+</html>
